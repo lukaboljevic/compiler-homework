@@ -265,7 +265,7 @@ public class Parser {
         if (this.firstMap.get("Logical").contains(this.sym)) {
             // Logical -> || | &&
             this.scan();
-            this.Expr3();
+            this.Expr2();
             this.ExprPrim();
         }
     }
