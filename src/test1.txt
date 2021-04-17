@@ -1,0 +1,15 @@
+LET
+    integer ime1;
+    integer IME2;
+    string str1;
+    double ddd;
+    integer IFBREAK;
+IN
+{
+    p = 123;
+    y = READSOMETHING;
+    // single line comment should be skipped entirely
+    x = -x;
+}
+END
+// easjkdlkasdjlad
