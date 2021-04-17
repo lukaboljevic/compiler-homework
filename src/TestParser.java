@@ -11,13 +11,10 @@ public class TestParser {
         String source = path + "\\";
         source += "test1.txt";
 		/*
-			TODO: Change the names in the grammar!
-			    perhaps refactor slightly more
+            TODO: Maybe regex for identifiers (variable name)
+            TODO: Error handling in Parser class? I believe all are handler but check just in case
 
-            TODO: Eventualno regex za identifikator
-            TODO: Greske u Parser
-
-            TODO: Provjeriti Follow skupove a i First jos jednom, nekad, do 1. maja
+            TODO: Check Follow sets, and the First once more, sometimes, before May 1st
 		*/
 
         try {

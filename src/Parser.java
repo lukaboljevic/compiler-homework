@@ -46,13 +46,13 @@ public class Parser {
         this.firstMap.put("CommandSequence", new ArrayList<>(Arrays.asList(if_, while_, for_, break_, print_, identifier_,
                 integerConstant_, boolConstant_, stringConstant_, doubleConstant_, leftpar_, readint_, readstring_,
                 readdouble_, readbool_)));
-        this.firstMap.put("Expr2", new ArrayList<>(Arrays.asList(identifier_, integerConstant_, boolConstant_,
+        this.firstMap.put("Expr", new ArrayList<>(Arrays.asList(identifier_, integerConstant_, boolConstant_,
                 stringConstant_, doubleConstant_, leftpar_, readint_, readstring_, readdouble_, readbool_)));
-        this.firstMap.put("LogicalOp", new ArrayList<>(Arrays.asList(and_, or_)));
-        this.firstMap.put("EqualityOp", new ArrayList<>(Arrays.asList(equal_, notequal_)));
-        this.firstMap.put("CompareOp", new ArrayList<>(Arrays.asList(less_, lessequal_, greater_, greaterequal_)));
-        this.firstMap.put("AddOp", new ArrayList<>(Arrays.asList(plus_, minus_)));
-        this.firstMap.put("MulOp", new ArrayList<>(Arrays.asList(mult_, div_, mod_)));
+        this.firstMap.put("Logical", new ArrayList<>(Arrays.asList(and_, or_)));
+        this.firstMap.put("Equality", new ArrayList<>(Arrays.asList(equal_, notequal_)));
+        this.firstMap.put("Compare", new ArrayList<>(Arrays.asList(less_, lessequal_, greater_, greaterequal_)));
+        this.firstMap.put("AddSub", new ArrayList<>(Arrays.asList(plus_, minus_)));
+        this.firstMap.put("MulDivMod", new ArrayList<>(Arrays.asList(mult_, div_, mod_)));
         this.firstMap.put("Constant", new ArrayList<>(Arrays.asList(integerConstant_, boolConstant_, stringConstant_, doubleConstant_)));
         this.firstMap.put("ReadOperations", new ArrayList<>(Arrays.asList(readint_, readstring_, readbool_, readdouble_)));
 
@@ -163,7 +163,7 @@ public class Parser {
     private void Stmt() {
         /*
         Stmt -> IfStmt  | WhileStmt |  ForStmt |
-			    BreakStmt  | PrintStmt | AssignExpr ; | Expr2 ;
+			    BreakStmt  | PrintStmt | AssignExpr ; | Expr ;
          */
         if (this.sym == this.if_)
             this.IfStmt();
@@ -178,8 +178,8 @@ public class Parser {
         else if (this.sym == this.identifier_) {
             this.AssignExpr();
             this.check(semicolon_);
-        } else if (this.firstMap.get("Expr2").contains(this.sym)) {
-            this.Expr2();
+        } else if (this.firstMap.get("Expr").contains(this.sym)) {
+            this.Expr();
             this.check(semicolon_);
         } else {
             this.error("Statement error");
@@ -187,17 +187,17 @@ public class Parser {
     }
 
     private void IfStmt() {
-        // IfStmt -> IF ( Expr2 ) CommandSequence IfStmtEnd
+        // IfStmt -> IF ( Expr ) CommandSequence IfStmtEnd
         this.check(this.if_);
         this.check(this.leftpar_);
-        this.Expr2();
+        this.Expr();
         this.check(this.rightpar_);
         this.CommandSequence();
-        this.IfStmtEnd();
+        this.EndIf();
     }
 
-    private void IfStmtEnd() {
-        // IfStmtEnd -> ELSE CommandSequence FI | FI
+    private void EndIf() {
+        // EndIf -> ELSE CommandSequence FI | FI
         if (this.sym == this.else_) {
             this.scan();
             this.CommandSequence();
@@ -210,21 +210,21 @@ public class Parser {
     }
 
     private void WhileStmt() {
-        // WhileStmt -> WHILE ( Expr2 ) CommandSequence
+        // WhileStmt -> WHILE ( Expr ) CommandSequence
         this.check(this.while_);
         this.check(this.leftpar_);
-        this.Expr2();
+        this.Expr();
         this.check(this.rightpar_);
         this.CommandSequence();
     }
 
     private void ForStmt() {
-        // ForStmt -> FOR ( AssignExpr ; Expr2 ; AssignExpr ) CommandSequence
+        // ForStmt -> FOR ( AssignExpr ; Expr ; AssignExpr ) CommandSequence
         this.check(this.for_);
         this.check(this.leftpar_);
         this.AssignExpr();
         this.check(this.semicolon_);
-        this.Expr2();
+        this.Expr();
         this.check(this.semicolon_);
         this.AssignExpr();
         this.check(this.rightpar_);
@@ -232,13 +232,13 @@ public class Parser {
     }
 
     private void BreakStmt() {
-        // BreakStmt ->  BREAK ;
+        // BreakStmt -> BREAK ;
         this.check(this.break_);
         this.check(this.semicolon_);
     }
 
     private void PrintStmt() {
-        // PrintStmt -> PRINT (Expr2) ;
+        // PrintStmt -> PRINT (Expr) ;
         this.check(this.print_);
         this.check(this.leftpar_);
         this.Expr2();
@@ -247,109 +247,109 @@ public class Parser {
     }
 
     private void AssignExpr() {
-        // AssignExpr -> ident = Expr2
+        // AssignExpr -> ident = Expr
         this.check(this.identifier_);
         this.check(this.assign_);
+        this.Expr();
+    }
+
+    private void Expr() {
+        // Expr -> Expr2 Expr'
         this.Expr2();
+        this.ExprPrim();
     }
 
-    private void Expr2() {
-        // Expr2 -> Expr3 Expr2'
-        this.Expr3();
-        this.Expr2p();
-    }
-
-    private void Expr2p() {
-        // Expr2' -> LogicalOp Expr3 Expr2' | eps
+    private void ExprPrim() {
+        // Expr' -> Logical Expr2 Expr' | eps
         // eps means do nothing basically
-        if (this.firstMap.get("LogicalOp").contains(this.sym)) {
-            // LogicalOp -> || | &&
+        if (this.firstMap.get("Logical").contains(this.sym)) {
+            // Logical -> || | &&
             this.scan();
             this.Expr3();
-            this.Expr2p();
+            this.ExprPrim();
         }
     }
 
-    private void Expr3() {
-        // Expr3 -> Expr4 ENDEXPR3
-        this.Expr4();
-        this.EndExpr3();
+    private void Expr2(){
+        // Expr2 -> Expr3 EndE2
+        this.Expr3();
+        this.EndE2();
     }
 
-    private void EndExpr3() {
-        // ENDEXPR3	-> EqualityOp Expr4 | eps
-        if (this.firstMap.get("EqualityOp").contains(this.sym)) {
-            // EqualityOp -> == | !=
+    private void EndE2(){
+        // EndE2 -> Equality Expr3 | eps
+        if(this.firstMap.get("Equality").contains(this.sym)){
+            // Equality -> == | !=
+            this.scan();
+            this.Expr3();
+        }
+    }
+
+    private void Expr3(){
+        // Expr3 -> Expr4 EndE3
+        this.Expr4();
+        this.EndE3();
+    }
+
+    private void EndE3(){
+        // EndE3 -> Compare Expr4 | eps
+        if(this.firstMap.get("Compare").contains(this.sym)){
+            // Compare -> < | <= | > | >=
             this.scan();
             this.Expr4();
         }
     }
 
-    private void Expr4() {
-        // Expr4 -> Expr5 ENDEXPR4
+    private void Expr4(){
+        // Expr4 -> Expr5 Expr4'
         this.Expr5();
-        this.EndExpr4();
+        this.Expr4Prim();
     }
 
-    private void EndExpr4() {
-        // ENDEXPR4	-> CompareOp Expr5 | eps
-        if (this.firstMap.get("CompareOp").contains(this.sym)) {
-            // CompareOp -> < | <= | > | >=
+    private void Expr4Prim(){
+        // Expr4' -> AddSub Expr5 Expr4' | eps
+        if(this.firstMap.get("AddSub").contains(this.sym)){
+            // AddSub -> + | -
             this.scan();
             this.Expr5();
+            this.Expr4Prim();
         }
     }
 
-    private void Expr5() {
+    private void Expr5(){
         // Expr5 -> Expr6 Expr5'
         this.Expr6();
-        this.Expr5p();
+        this.Expr5Prim();
     }
 
-    private void Expr5p() {
-        // Expr5' -> AddOp Expr6 Expr5' | eps
-        if (this.firstMap.get("AddOp").contains(this.sym)) {
-            // AddOp -> + | -
+    private void Expr5Prim(){
+        // Expr5' -> MulDivMod Expr6 Expr5' | eps
+        if(this.firstMap.get("MulDivMod").contains(this.sym)){
+            // MulDivMod -> * | / | %
             this.scan();
             this.Expr6();
-            this.Expr5p();
+            this.Expr5Prim();
         }
     }
 
-    private void Expr6() {
-        // Expr6 -> Expr7 Expr6'
-        this.Expr7();
-        this.Expr6p();
-    }
-
-    private void Expr6p() {
-        // Expr6' -> MulOp Expr7 Expr6' | eps
-        if (this.firstMap.get("MulOp").contains(this.sym)) {
-            // MulOp -> * | / | %
+    private void Expr6(){
+        // Expr6 -> ! Expr7 | - Expr7 | Expr7
+        if(this.sym == this.not_ || this.sym == this.minus_){
             this.scan();
-            this.Expr7();
-            this.Expr6p();
         }
+        this.Expr7();
     }
 
     private void Expr7() {
-        // Expr7 -> ! Expr8 | - Expr8 | Expr8
-        if (this.sym == this.not_ || this.sym == this.minus_) {
-            this.scan();
-        }
-        this.Expr8();
-    }
-
-    private void Expr8() {
-        // Expr8 -> Constant | ident | ( Expr2 ) | READINT ( ) | READSTRING ( ) | READDOUBLE (  ) | READBOOL ( )
+        // Expr7 -> Constant | ident | ( Expr2 ) | READINT () | READSTRING () | READDOUBLE () | READBOOL ()
         if (this.firstMap.get("Constant").contains(this.sym)) {
-            // Constant -> intConstant | boolConstant | stringConstant | doubleConstant
+            // Constant -> integerConstant | boolConstant | stringConstant | doubleConstant
             this.scan();
         } else if (this.sym == this.identifier_)
             this.scan();
         else if (this.sym == this.leftpar_) {
             this.scan();
-            this.Expr2();
+            this.Expr();
             this.check(this.rightpar_);
         } else if (this.firstMap.get("ReadOperations").contains(this.sym)) {
             // read operation

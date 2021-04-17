@@ -1,0 +1,44 @@
+Program         -> LET Declarations IN CommandSequence END
+Declarations	-> Decl+ 
+Decl			-> Type ident ;
+Type			-> integer |  bool | string | double
+		
+CommandSequence	-> {Stmt+ }
+Stmt			-> IfStmt  | WhileStmt |  ForStmt |
+				   BreakStmt  | PrintStmt | AssignExpr ; | Expr ;
+	
+IfStmt			-> IF ( Expr ) CommandSequence EndIf 
+EndIf			-> ELSE CommandSequence FI | FI 
+WhileStmt     	-> WHILE ( Expr ) CommandSequence
+ForStmt			-> FOR ( AssignExpr ; Expr ; AssignExpr ) CommandSequence
+BreakStmt		-> BREAK ;
+PrintStmt		-> PRINT (Expr) ;
+
+AssignExpr	-> ident = Expr
+
+Expr		-> Expr2 Expr'
+Expr'		-> Logical Expr2 Expr' | eps
+Logical		-> || | &&
+
+Expr2		-> Expr3 EndE2
+EndE2		-> Equality Expr3 | eps
+Equality	-> == | !=
+
+Expr3		-> Expr4 EndE3
+EndE3		-> Compare Expr4 | eps
+Compare		-> < | <= | > | >=
+
+Expr4		-> Expr5 Expr4'
+Expr4'		-> AddSub Expr5 Expr4' | eps
+AddSub		-> + | - 
+
+Expr5		-> Expr6 Expr5'
+Expr5'		-> MulDivMod Expr6 Expr5' | eps
+MulDivMod	-> * | / | %
+
+Expr6 -> ! Expr7 | - Expr7 | Expr7
+
+Expr7		-> Constant | ident | ( Expr ) | READINT () | READSTRING () | READDOUBLE () |
+				READBOOL ()
+
+Constant 	-> integerConstant | boolConstant | stringConstant | doubleConstant
