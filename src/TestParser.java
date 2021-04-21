@@ -10,9 +10,6 @@ public class TestParser {
         String path = "C:\\Users\\Luka\\Desktop\\Kompajleri domaci\\src";
         String source = path + "\\";
         source += "test1.txt";
-		/*
-            TODO: Error handling in Parser class? I believe all are handled but check just in case
-		*/
 
         try {
             Parser parser = new Parser(new OurScanner(new InputStreamReader(new FileInputStream(source))));
