@@ -28,6 +28,7 @@ public class OurScanner {
     private final String intRegex = "\\d+";  // regular expression for integers
     private final String hexRegex = "^(0[xX])[a-fA-F\\d]+";  // regular expression for hex integers
     private final String doubleRegex = "\\d+\\.\\d*([eE][+-]?\\d+)?";  // regular expression for doubles
+    private final String identifierRegex = "^[a-zA-Z]\\w*";  // regular expression for identifier names (\w is [a-zA-Z_0-9])
 
     private char lookahead;  // lookahead character
     private int col;  // current column
@@ -161,7 +162,13 @@ public class OurScanner {
             }
         }
 
-        t.kind = this.identifier_;  // it's length will be checked by the Parser class
+        if(t.string.matches(identifierRegex)){
+            t.kind = this.identifier_;  // it's length will be checked by the Parser class
+        }
+        else{
+            System.out.println("Scanner -- line " + this.line + " col " + this.col + ": Invalid identifier name");
+            t.kind = this.none_;
+        }
     }
 
     private void readString(Token t) {

@@ -11,10 +11,7 @@ public class TestParser {
         String source = path + "\\";
         source += "test1.txt";
 		/*
-            TODO: Maybe regex for identifiers (variable name)
-            TODO: Error handling in Parser class? I believe all are handler but check just in case
-
-            TODO: Check Follow sets, and the First once more, sometimes, before May 1st
+            TODO: Error handling in Parser class? I believe all are handled but check just in case
 		*/
 
         try {

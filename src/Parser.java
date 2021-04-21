@@ -89,7 +89,7 @@ public class Parser {
             if (this.sym == this.identifier_ && this.la.string.length() > 31) {
                 error("Identifier name too long (must be <= 31)");
             }
-            this.scan();  // recognized => read ahead
+            this.scan();  // read ahead
         } else {
             this.error(this.name[expected] + " expected");
         }
@@ -136,7 +136,6 @@ public class Parser {
 
     private void Type() {
         // Type -> integer | bool | string | double
-        // moze i firstMap.get("Type"). ...
         switch (this.sym) {
             case integer_:
             case bool_:
