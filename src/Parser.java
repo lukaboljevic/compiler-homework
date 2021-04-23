@@ -240,7 +240,7 @@ public class Parser {
         // PrintStmt -> PRINT (Expr) ;
         this.check(this.print_);
         this.check(this.leftpar_);
-        this.Expr2();
+        this.Expr();
         this.check(this.rightpar_);
         this.check(this.semicolon_);
     }
@@ -340,7 +340,7 @@ public class Parser {
     }
 
     private void Expr7() {
-        // Expr7 -> Constant | ident | ( Expr2 ) | READINT () | READSTRING () | READDOUBLE () | READBOOL ()
+        // Expr7 -> Constant | ident | ( Expr ) | READINT () | READSTRING () | READDOUBLE () | READBOOL ()
         if (this.firstMap.get("Constant").contains(this.sym)) {
             // Constant -> integerConstant | boolConstant | stringConstant | doubleConstant
             this.scan();
