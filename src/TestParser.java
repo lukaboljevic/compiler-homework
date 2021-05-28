@@ -7,7 +7,7 @@ public class TestParser {
     // Main method of the parser tester
     public static void main(String[] args) {
 
-        String path = "C:\\Users\\Luka\\Desktop\\Kompajleri domaci\\src\\";  // path to project dir
+        String path = "C:\\Users\\lukab\\Desktop\\compiler-homework\\src\\";  // path to project dir
         path += "test1.txt";
 
         try {

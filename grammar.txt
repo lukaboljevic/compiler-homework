@@ -1,5 +1,5 @@
-Program         -> LET Declarations IN CommandSequence END
-Declarations	-> Decl+ 
+Program         -> LET Declaration IN CommandSequence END
+Declaration	    -> Decl+
 Decl			-> Type ident ;
 Type			-> integer |  bool | string | double
 		
@@ -36,7 +36,7 @@ Expr5		-> Expr6 Expr5'
 Expr5'		-> MulDivMod Expr6 Expr5' | eps
 MulDivMod	-> * | / | %
 
-Expr6 -> ! Expr7 | - Expr7 | Expr7
+Expr6 		-> ! Expr7 | - Expr7 | Expr7
 
 Expr7		-> Constant | ident | ( Expr ) | READINT () | READSTRING () | READDOUBLE () |
 				READBOOL ()

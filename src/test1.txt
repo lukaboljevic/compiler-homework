@@ -6,10 +6,7 @@ LET
     integer IFBREAK;
 IN
 {
-    p = 123;
-    y = READSOMETHING;
-    // single line comment should be skipped entirely
-    x = -x;
+
 }
 END
 // easjkdlkasdjlad
