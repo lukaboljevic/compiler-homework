@@ -57,7 +57,7 @@ public class Parser {
         }
         System.out.println("\nCOMMANDS\n");
         for (Statement statement : program.commandSequence.statements) {
-            System.out.println(statement.kind);
+            System.out.println("\t" + statement.kind);
         }
     }
 
@@ -134,16 +134,15 @@ public class Parser {
     private String Type() {
         // Type -> integer | bool | string | double
         switch (this.sym) {
-            case INTEGER_TYPE:
-            case BOOL_TYPE:
-            case DOUBLE_TYPE:
-            case STRING_TYPE:
+            case INTEGER_TYPE, BOOL_TYPE, DOUBLE_TYPE, STRING_TYPE -> {
                 String type = this.sym.toString();
                 this.scan();
                 return type;
-            default:
+            }
+            default -> {
                 this.error("variable type (integer, bool, string, double) expected");
                 return "Non existent variable type";
+            }
         }
     }
 
@@ -267,22 +266,22 @@ public class Parser {
 
     private Expression Expr() {
         // Expr -> Expr2 Expr'
-        Expression expr2 = this.Expr2();
-        return this.ExprPrim(expr2);
+        Expression left = this.Expr2();
+        return this.ExprPrim(left);
     }
 
-    private Expression ExprPrim(Expression expr2) {
+    private Expression ExprPrim(Expression left) {
         // Expr' -> Logical Expr2 Expr' | eps
         if (this.sym == TokenCode.AND || this.sym == TokenCode.OR) {
             // Logical -> || | &&
             String operator = this.sym == TokenCode.OR ? "||" : "&&";
             this.scan();
-            Expression temp = this.Expr2();
-            return this.ExprPrim(new Expression(operator, expr2, temp, StatementKind.BINARY_EXPR));
+            Expression right = this.Expr2();
+            return this.ExprPrim(new Expression(operator, left, right, StatementKind.BINARY_EXPR));
         }
         // eps
         else {
-            return expr2;
+            return left;
         }
     }
 
@@ -315,7 +314,13 @@ public class Parser {
         // EndE3 -> Compare Expr4 | eps
         if (this.firstMap.get("Compare").contains(this.sym)) {
             // Compare -> < | <= | > | >=
-            String operator = this.sym.toString();
+            String operator = switch (this.sym) {
+                case LESS -> "<";
+                case LESS_EQUAL -> "<=";
+                case GREATER -> ">";
+                case GREATER_EQUAL -> ">=";
+                default -> "wtf";
+            };
             this.scan();
             Expression right = this.Expr4();
             return new Expression(operator, left, right, StatementKind.BINARY_EXPR);
@@ -326,50 +331,44 @@ public class Parser {
 
     private Expression Expr4() {
         // Expr4 -> Expr5 Expr4'
-        Expression expr5 = this.Expr5();
-        return this.Expr4Prim(expr5);
+        Expression left = this.Expr5();
+        return this.Expr4Prim(left);
     }
 
-    private Expression Expr4Prim(Expression expr5) {
+    private Expression Expr4Prim(Expression left) {
         // Expr4' -> AddSub Expr5 Expr4' | eps
         if (this.sym == TokenCode.PLUS || this.sym == TokenCode.MINUS) {
             // AddSub -> + | -
             String operator = this.sym == TokenCode.PLUS ? "+" : "-";
             this.scan();
-            Expression temp = this.Expr5();
-            return this.Expr4Prim(new Expression(operator, expr5, temp, StatementKind.BINARY_EXPR));
+            Expression right = this.Expr5();
+            return this.Expr4Prim(new Expression(operator, left, right, StatementKind.BINARY_EXPR));
         } else {
-            return expr5;
+            return left;
         }
     }
 
     private Expression Expr5() {
         // Expr5 -> Expr6 Expr5'
-        Expression expr6 = this.Expr6();
-        return this.Expr5Prim(expr6);
+        Expression left = this.Expr6();
+        return this.Expr5Prim(left);
     }
 
-    private Expression Expr5Prim(Expression expr6) {
+    private Expression Expr5Prim(Expression left) {
         // Expr5' -> MulDivMod Expr6 Expr5' | eps
         if (this.sym == TokenCode.MULTIPLY || this.sym == TokenCode.DIVIDE || this.sym == TokenCode.MOD) {
             // MulDivMod -> * | / | %
-            String operator = "";
-            switch (this.sym) {
-                case MULTIPLY:
-                    operator = "*";
-                    break;
-                case DIVIDE:
-                    operator = "/";
-                    break;
-                case MOD:
-                    operator = "%";
-                    break;
-            }
+            String operator = switch (this.sym) {
+                case MULTIPLY -> "*";
+                case DIVIDE -> "/";
+                case MOD -> "%";
+                default -> "";
+            };
             this.scan();
-            Expression temp = this.Expr6();
-            return this.Expr5Prim(new Expression(operator, expr6, temp, StatementKind.BINARY_EXPR));
+            Expression right = this.Expr6();
+            return this.Expr5Prim(new Expression(operator, left, right, StatementKind.BINARY_EXPR));
         } else {
-            return expr6;
+            return left;
         }
     }
 
@@ -380,11 +379,11 @@ public class Parser {
             operator = this.sym == TokenCode.NOT ? "!" : "-";
             this.scan();
         }
-        Expression expr7 = this.Expr7();
+        Expression expr = this.Expr7();
         if (operator.equals("")) {
-            return expr7;
+            return expr;
         } else {
-            return new Expression(operator, expr7, null, StatementKind.UNARY_EXPR);
+            return new Expression(operator, expr, null, StatementKind.UNARY_EXPR);
         }
     }
 
