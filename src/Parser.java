@@ -57,7 +57,7 @@ public class Parser {
         }
         System.out.println("\nCOMMANDS\n");
         for (Statement statement : program.commandSequence.statements) {
-            System.out.println("yes");
+            System.out.println(statement.kind);
         }
     }
 
@@ -138,8 +138,9 @@ public class Parser {
             case BOOL_TYPE:
             case DOUBLE_TYPE:
             case STRING_TYPE:
+                String type = this.sym.toString();
                 this.scan();
-                return this.sym.toString();
+                return type;
             default:
                 this.error("variable type (integer, bool, string, double) expected");
                 return "Non existent variable type";
@@ -314,21 +315,7 @@ public class Parser {
         // EndE3 -> Compare Expr4 | eps
         if (this.firstMap.get("Compare").contains(this.sym)) {
             // Compare -> < | <= | > | >=
-            String operator = "";
-            switch (this.sym) {
-                case LESS:
-                    operator = "<";
-                    break;
-                case GREATER:
-                    operator = ">";
-                    break;
-                case LESS_EQUAL:
-                    operator = "<=";
-                    break;
-                case GREATER_EQUAL:
-                    operator = ">=";
-                    break;
-            }
+            String operator = this.sym.toString();
             this.scan();
             Expression right = this.Expr4();
             return new Expression(operator, left, right, StatementKind.BINARY_EXPR);
@@ -405,8 +392,8 @@ public class Parser {
         // Expr7 -> Constant | ident | ( Expr ) | READINT () | READSTRING () | READDOUBLE () | READBOOL ()
         if (this.firstMap.get("Constant").contains(this.sym)) {
             // Constant -> integerConstant | boolConstant | stringConstant | doubleConstant
-            this.scan();
             String constantType = this.sym.toString();
+            this.scan();
             return new Expression("", null, null, constantType);
         } else if (this.sym == TokenCode.IDENTIFIER) {
             String identifier = this.la.string;

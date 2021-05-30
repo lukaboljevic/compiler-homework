@@ -7,6 +7,20 @@ LET
 IN
 {
     a = (1 + 2) * 3;
+    IF (a < 5)
+    {
+        PRINT(a);
+        BREAK;
+        WHILE (a < 3) {
+            a = a + 1;
+        }
+    }
+    ELSE
+    {
+        FOR(i = 0; i < 5; i = i + 1) {
+            a = a + 2;
+        }
+    }
+    FI
 }
 END
-// easjkdlkasdjlad
