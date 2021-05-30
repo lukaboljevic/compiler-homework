@@ -1,5 +1,11 @@
+import java.util.ArrayList;
+
 public class CommandSequence {
 
-    Statement[] statements;
+    ArrayList<Statement> statements;
+
+    public CommandSequence(ArrayList<Statement> statements){
+        this.statements = statements;
+    }
 
 }

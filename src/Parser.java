@@ -3,67 +3,61 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class Parser {
-    private final int  // token codes
-    none_ = 0, eof_ = 1, let_ = 2, in_ = 3, end_ = 4, if_ = 5, fi_ = 6, else_ = 7, while_ = 8, for_ = 9,
-    break_ = 10, print_ = 11, then_ = 12,
-    readint_ = 13, readstring_ = 14, readbool_ = 15, readdouble_ = 16,
 
-    identifier_ = 17, integer_ = 18, bool_ = 19, string_ = 20, double_ = 21,
-
-    plus_ = 22, minus_ = 23, mult_ = 24, div_ = 25, mod_ = 26, less_ = 27, lessequal_ = 28, greater_ = 29,
-    greaterequal_ = 30, assign_ = 31, equal_ = 32, notequal_ = 33, and_ = 34, or_ = 35, not_ = 36, semicolon_ = 37,
-    comma_ = 38, period_ = 39, leftpar_ = 40, rightpar_ = 41,
-
-    integerConstant_ = 42, doubleConstant_ = 43, stringConstant_ = 44, boolConstant_ = 45,
-
-    leftCurly_ = 46, rightCurly_ = 47;
-
-    private final String[] name = { // token names for error messages
-            // THEN, . and the , are here because 1. I accidentally added then to the list of keywords
-            // way before I realised it wasn't a keyword, and the . and , are there because of the consistency
-            // in the numbering of the tokens
-            "none", "eof", "LET", "IN", "END", "IF", "FI", "ELSE", "WHILE", "FOR", "BREAK", "PRINT", "THEN",
-            "READINT()", "READSTRING()", "READBOOL()", "READDOUBLE()", "identifier", "integer", "bool", "string",
-            "double", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "=", "==", "!=", "&&", "||", "!", ";", ",",
-            ".", "(", ")", "integer constant", "double constant", "string constant", "bool constant", "{", "}"
-    };
-
-    private Token curr;        // current token (most recently recognized token)
-    private Token la;        // lookahead token (still unrecognized)
-    private int sym;            // always contains la.kind; token number of the lookahead token
-    private int errDist;        // no. of correctly recognized tokens since last error
-    private int errors;    // error counter
+    private Token la;       // lookahead token (still unrecognized)
+    private TokenCode sym;  // always contains la.kind; token code of the lookahead token
+    private int errDist;    // no. of correctly recognized tokens since last error
+    private int errors;     // error counter
 
     // maps a nonterminal to it's FirstSet; the FirstSet is a list of codes from above
-    private final HashMap<String, ArrayList<Integer>> firstMap;
-    private final OurScanner scanner;
+    private final HashMap<String, ArrayList<TokenCode>> firstMap;
+    private final Scanner scanner;
 
-    public Parser(OurScanner s) {  // this is our Scanner, and not the built in one
+    public Parser(Scanner s) {
 
         this.firstMap = new HashMap<>();
-        this.firstMap.put("Declarations", new ArrayList<>(Arrays.asList(integer_, bool_, string_, double_)));
-        this.firstMap.put("Type", new ArrayList<>(Arrays.asList(integer_, bool_, string_, double_)));
-        this.firstMap.put("CommandSequence", new ArrayList<>(Arrays.asList(if_, while_, for_, break_, print_, identifier_,
-                integerConstant_, boolConstant_, stringConstant_, doubleConstant_, leftpar_, readint_, readstring_,
-                readdouble_, readbool_)));
-        this.firstMap.put("Expr", new ArrayList<>(Arrays.asList(identifier_, integerConstant_, boolConstant_,
-                stringConstant_, doubleConstant_, leftpar_, readint_, readstring_, readdouble_, readbool_)));
-        this.firstMap.put("Logical", new ArrayList<>(Arrays.asList(and_, or_)));
-        this.firstMap.put("Equality", new ArrayList<>(Arrays.asList(equal_, notequal_)));
-        this.firstMap.put("Compare", new ArrayList<>(Arrays.asList(less_, lessequal_, greater_, greaterequal_)));
-        this.firstMap.put("AddSub", new ArrayList<>(Arrays.asList(plus_, minus_)));
-        this.firstMap.put("MulDivMod", new ArrayList<>(Arrays.asList(mult_, div_, mod_)));
-        this.firstMap.put("Constant", new ArrayList<>(Arrays.asList(integerConstant_, boolConstant_, stringConstant_, doubleConstant_)));
-        this.firstMap.put("ReadOperations", new ArrayList<>(Arrays.asList(readint_, readstring_, readbool_, readdouble_)));
+        this.firstMap.put("Declarations", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_TYPE,
+                TokenCode.BOOL_TYPE, TokenCode.STRING_TYPE, TokenCode.DOUBLE_TYPE)));
+        this.firstMap.put("CommandSequence", new ArrayList<>(Arrays.asList(TokenCode.IF, TokenCode.WHILE,
+                TokenCode.FOR, TokenCode.BREAK, TokenCode.PRINT, TokenCode.IDENTIFIER,
+                TokenCode.INTEGER_CONSTANT, TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT,
+                TokenCode.DOUBLE_CONSTANT, TokenCode.LEFT_REGULAR, TokenCode.READINT, TokenCode.READSTRING,
+                TokenCode.READDOUBLE, TokenCode.READBOOL)));
+        this.firstMap.put("Expr", new ArrayList<>(Arrays.asList(TokenCode.IDENTIFIER,
+                TokenCode.INTEGER_CONSTANT, TokenCode.BOOL_CONSTANT,
+                TokenCode.STRING_CONSTANT, TokenCode.DOUBLE_CONSTANT, TokenCode.LEFT_REGULAR,
+                TokenCode.READINT, TokenCode.READSTRING, TokenCode.READDOUBLE, TokenCode.READBOOL)));
+        this.firstMap.put("Compare", new ArrayList<>(Arrays.asList(TokenCode.LESS, TokenCode.LESS_EQUAL,
+                TokenCode.GREATER, TokenCode.GREATER_EQUAL)));
+        this.firstMap.put("Constant", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_CONSTANT,
+                TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT, TokenCode.DOUBLE_CONSTANT)));
+        this.firstMap.put("ReadOperations", new ArrayList<>(Arrays.asList(TokenCode.READINT,
+                TokenCode.READSTRING, TokenCode.READBOOL, TokenCode.READDOUBLE)));
 
         // start parsing
         this.errors = 0;
         this.scanner = s;
         this.errDist = 3;
         this.scan();
-        this.Program();
-        if (this.sym != this.eof_) {
+        Program program = this.Program();
+        if (this.sym != TokenCode.EOF) {
             error("end of file found before end of program");
+        }
+
+        // Print the AST/Parse tree/whatever the hell
+        this.printProgram(program);
+    }
+
+    //------------------- Printing methods ----------------------
+
+    private void printProgram(Program program) {
+        System.out.println("DECLARATIONS\n");
+        for (Declaration declaration : program.declarations) {
+            System.out.printf("\tType: %s, Name: %s\n", declaration.type, declaration.identifier);
+        }
+        System.out.println("\nCOMMANDS\n");
+        for (Statement statement : program.commandSequence.statements) {
+            System.out.println("yes");
         }
     }
 
@@ -71,7 +65,6 @@ public class Parser {
 
     private void scan() {
         // scan for the next token
-        this.curr = this.la;
         this.la = this.scanner.nextToken();
         while (this.la == null) {
             this.la = this.scanner.nextToken();
@@ -83,15 +76,15 @@ public class Parser {
         this.errDist++;
     }
 
-    private void check(int expected) {
+    private void check(TokenCode expected) {
         // check if the kind of the lookahead token is the expected one
         if (this.sym == expected) {
-            if (this.sym == this.identifier_ && this.la.string.length() > 31) {
+            if (this.sym == TokenCode.IDENTIFIER && this.la.string.length() > 31) {
                 error("Identifier name too long (must be <= 31)");
             }
             this.scan();  // read ahead
         } else {
-            this.error(this.name[expected] + " expected");
+            this.error(expected.toString() + " expected");
         }
     }
 
@@ -110,252 +103,331 @@ public class Parser {
 
     //-------------- P A R S I N G   M E T H O D S -----------------
 
-    private void Program() {
+    private Program Program() {
         // Program -> LET Declarations IN CommandSequence END
-        this.check(let_);
-        this.Declarations();
-        this.check(in_);
-        this.CommandSequence();
-        this.check(end_);
+        this.check(TokenCode.LET);
+        ArrayList<Declaration> declarations = this.Declarations();
+        this.check(TokenCode.IN);
+        CommandSequence cs = this.CommandSequence();
+        this.check(TokenCode.END);
+        return new Program(declarations, cs);
     }
 
-    private void Declarations() {
+    private ArrayList<Declaration> Declarations() {
         // Declarations -> Decl+
-        ArrayList<Integer> firstDeclarations = this.firstMap.get("Declarations");
-        while (firstDeclarations.contains(this.sym)) {
-            this.Decl();
+        ArrayList<Declaration> declarations = new ArrayList<>();
+        while (this.firstMap.get("Declarations").contains(this.sym)) {
+            declarations.add(this.Decl());
         }
+        return declarations;
     }
 
-    private void Decl() {
+    private Declaration Decl() {
         // Decl -> Type ident ;
-        this.Type();
-        this.check(identifier_);
-        this.check(semicolon_);
+        String type = this.Type();
+        String identifier = this.la.string;
+        this.check(TokenCode.IDENTIFIER);
+        this.check(TokenCode.SEMICOLON);
+        return new Declaration(type, identifier);
     }
 
-    private void Type() {
+    private String Type() {
         // Type -> integer | bool | string | double
         switch (this.sym) {
-            case integer_:
-            case bool_:
-            case string_:
-            case double_:
+            case INTEGER_TYPE:
+            case BOOL_TYPE:
+            case DOUBLE_TYPE:
+            case STRING_TYPE:
                 this.scan();
-                break;
+                return this.sym.toString();
             default:
                 this.error("variable type (integer, bool, string, double) expected");
-                break;
+                return "Non existent variable type";
         }
     }
 
-    private void CommandSequence() {
+    private CommandSequence CommandSequence() {
         // CommandSequence -> {Stmt+}
-        ArrayList<Integer> firstCommandSequence = this.firstMap.get("CommandSequence");
-        check(this.leftCurly_);
-        while (firstCommandSequence.contains(this.sym))
-            this.Stmt();
-        check(this.rightCurly_);
-
+        ArrayList<Statement> statements = new ArrayList<>();
+        this.check(TokenCode.LEFT_CURLY);
+        while (this.firstMap.get("CommandSequence").contains(this.sym))
+            statements.add(this.Stmt());
+        this.check(TokenCode.RIGHT_CURLY);
+        return new CommandSequence(statements);
     }
 
-    private void Stmt() {
+    private Statement Stmt() {
         /*
         Stmt -> IfStmt  | WhileStmt |  ForStmt |
 			    BreakStmt  | PrintStmt | AssignExpr ; | Expr ;
          */
-        if (this.sym == this.if_)
-            this.IfStmt();
-        else if (this.sym == this.while_)
-            this.WhileStmt();
-        else if (this.sym == this.for_)
-            this.ForStmt();
-        else if (this.sym == this.break_)
-            this.BreakStmt();
-        else if (this.sym == this.print_)
-            this.PrintStmt();
-        else if (this.sym == this.identifier_) {
-            this.AssignExpr();
-            this.check(semicolon_);
+        if (this.sym == TokenCode.IF) {
+            return this.IfStmt();
+        } else if (this.sym == TokenCode.WHILE) {
+            return this.WhileStmt();
+        } else if (this.sym == TokenCode.FOR) {
+            return this.ForStmt();
+        } else if (this.sym == TokenCode.BREAK) {
+            return this.BreakStmt();
+        } else if (this.sym == TokenCode.PRINT) {
+            return this.PrintStmt();
+        } else if (this.sym == TokenCode.IDENTIFIER) {
+            ExpressionAssign assign = this.AssignExpr();
+            this.check(TokenCode.SEMICOLON);
+            return assign;
         } else if (this.firstMap.get("Expr").contains(this.sym)) {
-            this.Expr();
-            this.check(semicolon_);
+            Expression expr = this.Expr();
+            this.check(TokenCode.SEMICOLON);
+            return expr;
         } else {
             this.error("Statement error");
+            return null;
         }
     }
 
-    private void IfStmt() {
+    private StatementIf IfStmt() {
         // IfStmt -> IF ( Expr ) CommandSequence IfStmtEnd
-        this.check(this.if_);
-        this.check(this.leftpar_);
-        this.Expr();
-        this.check(this.rightpar_);
-        this.CommandSequence();
-        this.EndIf();
+        this.check(TokenCode.IF);
+        this.check(TokenCode.LEFT_REGULAR);
+        Expression expr = this.Expr();
+        this.check(TokenCode.RIGHT_REGULAR);
+        CommandSequence cs = this.CommandSequence();
+        StatementEndIf endIf = this.EndIf();
+        return new StatementIf(expr, cs, endIf);
     }
 
-    private void EndIf() {
+    private StatementEndIf EndIf() {
         // EndIf -> ELSE CommandSequence FI | FI
-        if (this.sym == this.else_) {
+        if (this.sym == TokenCode.ELSE) {
             this.scan();
-            this.CommandSequence();
-            this.check(this.fi_);
-        } else if (this.sym == this.fi_) {
+            CommandSequence cs = this.CommandSequence();
+            this.check(TokenCode.FI);
+            return new StatementEndIf(cs);
+        } else if (this.sym == TokenCode.FI) {
             this.scan();
+            return new StatementEndIf(null);
         } else {
             this.error("Invalid end for IF statement");
+            return null;
         }
     }
 
-    private void WhileStmt() {
+    private StatementWhile WhileStmt() {
         // WhileStmt -> WHILE ( Expr ) CommandSequence
-        this.check(this.while_);
-        this.check(this.leftpar_);
-        this.Expr();
-        this.check(this.rightpar_);
-        this.CommandSequence();
+        this.check(TokenCode.WHILE);
+        this.check(TokenCode.LEFT_REGULAR);
+        Expression expression = this.Expr();
+        this.check(TokenCode.RIGHT_REGULAR);
+        CommandSequence cs = this.CommandSequence();
+        return new StatementWhile(expression, cs);
     }
 
-    private void ForStmt() {
+    private StatementFor ForStmt() {
         // ForStmt -> FOR ( AssignExpr ; Expr ; AssignExpr ) CommandSequence
-        this.check(this.for_);
-        this.check(this.leftpar_);
-        this.AssignExpr();
-        this.check(this.semicolon_);
-        this.Expr();
-        this.check(this.semicolon_);
-        this.AssignExpr();
-        this.check(this.rightpar_);
-        this.CommandSequence();
+        this.check(TokenCode.FOR);
+        this.check(TokenCode.LEFT_REGULAR);
+        ExpressionAssign first = this.AssignExpr();
+        this.check(TokenCode.SEMICOLON);
+        Expression expression = this.Expr();
+        this.check(TokenCode.SEMICOLON);
+        ExpressionAssign second = this.AssignExpr();
+        this.check(TokenCode.RIGHT_REGULAR);
+        CommandSequence cs = this.CommandSequence();
+        return new StatementFor(first, expression, second, cs);
     }
 
-    private void BreakStmt() {
+    private Statement BreakStmt() {
         // BreakStmt -> BREAK ;
-        this.check(this.break_);
-        this.check(this.semicolon_);
+        this.check(TokenCode.BREAK);
+        this.check(TokenCode.SEMICOLON);
+        Statement statement = new Statement();
+        statement.kind = StatementKind.BREAK_STATEMENT;
+        return statement;
     }
 
-    private void PrintStmt() {
+    private StatementPrint PrintStmt() {
         // PrintStmt -> PRINT (Expr) ;
-        this.check(this.print_);
-        this.check(this.leftpar_);
-        this.Expr();
-        this.check(this.rightpar_);
-        this.check(this.semicolon_);
+        this.check(TokenCode.PRINT);
+        this.check(TokenCode.LEFT_REGULAR);
+        Expression expression = this.Expr();
+        this.check(TokenCode.RIGHT_REGULAR);
+        this.check(TokenCode.SEMICOLON);
+        return new StatementPrint(expression);
     }
 
-    private void AssignExpr() {
+    private ExpressionAssign AssignExpr() {
         // AssignExpr -> ident = Expr
-        this.check(this.identifier_);
-        this.check(this.assign_);
-        this.Expr();
+        String identifier = this.la.string;
+        this.check(TokenCode.IDENTIFIER);
+        this.check(TokenCode.SINGLE_EQUALS);
+        Expression expression = this.Expr();
+        return new ExpressionAssign(identifier, expression);
     }
 
-    private void Expr() {
+    private Expression Expr() {
         // Expr -> Expr2 Expr'
-        this.Expr2();
-        this.ExprPrim();
+        Expression expr2 = this.Expr2();
+        return this.ExprPrim(expr2);
     }
 
-    private void ExprPrim() {
+    private Expression ExprPrim(Expression expr2) {
         // Expr' -> Logical Expr2 Expr' | eps
-        // eps means do nothing basically
-        if (this.firstMap.get("Logical").contains(this.sym)) {
+        if (this.sym == TokenCode.AND || this.sym == TokenCode.OR) {
             // Logical -> || | &&
+            String operator = this.sym == TokenCode.OR ? "||" : "&&";
             this.scan();
-            this.Expr2();
-            this.ExprPrim();
+            Expression temp = this.Expr2();
+            return this.ExprPrim(new Expression(operator, expr2, temp, StatementKind.BINARY_EXPR));
+        }
+        // eps
+        else {
+            return expr2;
         }
     }
 
-    private void Expr2(){
+    private Expression Expr2() {
         // Expr2 -> Expr3 EndE2
-        this.Expr3();
-        this.EndE2();
+        Expression left = this.Expr3();
+        return this.EndE2(left);
     }
 
-    private void EndE2(){
+    private Expression EndE2(Expression left) {
         // EndE2 -> Equality Expr3 | eps
-        if(this.firstMap.get("Equality").contains(this.sym)){
+        if (this.sym == TokenCode.DOUBLE_EQUALS || this.sym == TokenCode.NOT_EQUALS) {
             // Equality -> == | !=
+            String operator = this.sym == TokenCode.DOUBLE_EQUALS ? "==" : "!=";
             this.scan();
-            this.Expr3();
+            Expression right = this.Expr3();
+            return new Expression(operator, left, right, StatementKind.BINARY_EXPR);
+        } else {
+            return left;
         }
     }
 
-    private void Expr3(){
+    private Expression Expr3() {
         // Expr3 -> Expr4 EndE3
-        this.Expr4();
-        this.EndE3();
+        Expression left = this.Expr4();
+        return this.EndE3(left);
     }
 
-    private void EndE3(){
+    private Expression EndE3(Expression left) {
         // EndE3 -> Compare Expr4 | eps
-        if(this.firstMap.get("Compare").contains(this.sym)){
+        if (this.firstMap.get("Compare").contains(this.sym)) {
             // Compare -> < | <= | > | >=
+            String operator = "";
+            switch (this.sym) {
+                case LESS:
+                    operator = "<";
+                    break;
+                case GREATER:
+                    operator = ">";
+                    break;
+                case LESS_EQUAL:
+                    operator = "<=";
+                    break;
+                case GREATER_EQUAL:
+                    operator = ">=";
+                    break;
+            }
             this.scan();
-            this.Expr4();
+            Expression right = this.Expr4();
+            return new Expression(operator, left, right, StatementKind.BINARY_EXPR);
+        } else {
+            return left;
         }
     }
 
-    private void Expr4(){
+    private Expression Expr4() {
         // Expr4 -> Expr5 Expr4'
-        this.Expr5();
-        this.Expr4Prim();
+        Expression expr5 = this.Expr5();
+        return this.Expr4Prim(expr5);
     }
 
-    private void Expr4Prim(){
+    private Expression Expr4Prim(Expression expr5) {
         // Expr4' -> AddSub Expr5 Expr4' | eps
-        if(this.firstMap.get("AddSub").contains(this.sym)){
+        if (this.sym == TokenCode.PLUS || this.sym == TokenCode.MINUS) {
             // AddSub -> + | -
+            String operator = this.sym == TokenCode.PLUS ? "+" : "-";
             this.scan();
-            this.Expr5();
-            this.Expr4Prim();
+            Expression temp = this.Expr5();
+            return this.Expr4Prim(new Expression(operator, expr5, temp, StatementKind.BINARY_EXPR));
+        } else {
+            return expr5;
         }
     }
 
-    private void Expr5(){
+    private Expression Expr5() {
         // Expr5 -> Expr6 Expr5'
-        this.Expr6();
-        this.Expr5Prim();
+        Expression expr6 = this.Expr6();
+        return this.Expr5Prim(expr6);
     }
 
-    private void Expr5Prim(){
+    private Expression Expr5Prim(Expression expr6) {
         // Expr5' -> MulDivMod Expr6 Expr5' | eps
-        if(this.firstMap.get("MulDivMod").contains(this.sym)){
+        if (this.sym == TokenCode.MULTIPLY || this.sym == TokenCode.DIVIDE || this.sym == TokenCode.MOD) {
             // MulDivMod -> * | / | %
+            String operator = "";
+            switch (this.sym) {
+                case MULTIPLY:
+                    operator = "*";
+                    break;
+                case DIVIDE:
+                    operator = "/";
+                    break;
+                case MOD:
+                    operator = "%";
+                    break;
+            }
             this.scan();
-            this.Expr6();
-            this.Expr5Prim();
+            Expression temp = this.Expr6();
+            return this.Expr5Prim(new Expression(operator, expr6, temp, StatementKind.BINARY_EXPR));
+        } else {
+            return expr6;
         }
     }
 
-    private void Expr6(){
+    private Expression Expr6() {
         // Expr6 -> ! Expr7 | - Expr7 | Expr7
-        if(this.sym == this.not_ || this.sym == this.minus_){
+        String operator = "";
+        if (this.sym == TokenCode.NOT || this.sym == TokenCode.MINUS) {
+            operator = this.sym == TokenCode.NOT ? "!" : "-";
             this.scan();
         }
-        this.Expr7();
+        Expression expr7 = this.Expr7();
+        if (operator.equals("")) {
+            return expr7;
+        } else {
+            return new Expression(operator, expr7, null, StatementKind.UNARY_EXPR);
+        }
     }
 
-    private void Expr7() {
+    private Expression Expr7() {
         // Expr7 -> Constant | ident | ( Expr ) | READINT () | READSTRING () | READDOUBLE () | READBOOL ()
         if (this.firstMap.get("Constant").contains(this.sym)) {
             // Constant -> integerConstant | boolConstant | stringConstant | doubleConstant
             this.scan();
-        } else if (this.sym == this.identifier_)
+            String constantType = this.sym.toString();
+            return new Expression("", null, null, constantType);
+        } else if (this.sym == TokenCode.IDENTIFIER) {
+            String identifier = this.la.string;
             this.scan();
-        else if (this.sym == this.leftpar_) {
+            Expression result = new Expression("", null, null, "Identifier");
+            result.value = identifier;
+            return result;
+        } else if (this.sym == TokenCode.LEFT_REGULAR) {
             this.scan();
-            this.Expr();
-            this.check(this.rightpar_);
+            Expression result = this.Expr();
+            this.check(TokenCode.RIGHT_REGULAR);
+            return result;
         } else if (this.firstMap.get("ReadOperations").contains(this.sym)) {
             // read operation
+            String readType = this.sym.toString();
             this.scan();
+            return new Expression("", null, null, readType);
         } else {
             this.error("Expression expected");
             this.scan();
+            return null;
         }
     }
 }
