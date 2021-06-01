@@ -77,14 +77,15 @@ public class Parser {
     private void printCommandSequence(CommandSequence commandSequence, int numTabs) {
         System.out.println(generateTabs(numTabs - 1) + "COMMANDS:");
         for (Statement statement : commandSequence.statements) {
-            if (statement == null) {
-                continue;
-            }
             this.printStatement(statement, numTabs);
         }
     }
 
     private void printStatement(Statement statement, int numTabs) {
+        if (statement == null) {
+            System.out.println(generateTabs(numTabs) + "NULL STATEMENT");
+            return;
+        }
         switch (statement.kind) {
             case StatementKind.IF_STATEMENT -> printIfStatement((StatementIf) statement, numTabs);
             case StatementKind.WHILE_STATEMENT -> printWhileStatement((StatementWhile) statement, numTabs);
