@@ -85,10 +85,6 @@ public class Parser {
     }
 
     private void printStatement(Statement statement, int numTabs) {
-        if (statement == null){
-            System.out.println(generateTabs(numTabs) + "NULL STATEMENT");
-            return;
-        }
         switch (statement.kind) {
             case StatementKind.IF_STATEMENT -> printIfStatement((StatementIf) statement, numTabs);
             case StatementKind.WHILE_STATEMENT -> printWhileStatement((StatementWhile) statement, numTabs);
