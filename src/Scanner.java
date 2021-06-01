@@ -107,32 +107,8 @@ public class Scanner {
         // Check if it's a keyword
         for (String keyword : this.keywords.keySet()) {
             if (t.string.compareTo(keyword) == 0) {
-                if (t.string.startsWith("READ")) {
-                    // READ operation, check for it's validity as well
-                    // they have to be of the form READ[SOMETHING]() -> if the brackets are missing, it's an error
-                    if (this.lookahead == '(') {
-                        this.nextCharacter();
-                        if (this.lookahead == ')') {
-                            this.nextCharacter();
-                            t.kind = this.keywords.get(keyword); // keyword = READ[INT/STRING/BOOL/DOUBLE]
-                            return;
-                        } else {
-                            System.out.println("Scanner -- line " + this.line + " col " + this.col + ": " +
-                                    "Invalid READ operation expression, missing )");
-                            t.kind = TokenCode.NONE;
-                            return;
-                        }
-                    } else {
-                        System.out.println("Scanner -- line " + this.line + " col " + this.col + ": " +
-                                "Invalid READ operation expression, missing (");
-                        t.kind = TokenCode.NONE;
-                        return;
-                    }
-                } else {
-                    // not a READ operation but is another keyword
-                    t.kind = this.keywords.get(keyword);
-                    return;
-                }
+                t.kind = this.keywords.get(keyword);
+                return;
             }
         }
 
@@ -192,7 +168,7 @@ public class Scanner {
         } else if ('0' <= this.lookahead && this.lookahead <= '9') {
             this.readNumber(t);
         } else {
-            String chString = Character.toString(this.lookahead);
+            String lookaheadString = Character.toString(this.lookahead);
             switch (this.lookahead) {
                 case '\"':
                     this.readString(t);
@@ -209,8 +185,8 @@ public class Scanner {
                 case '{':
                 case '}':
                     this.nextCharacter();  // continue scanning
-                    t.kind = this.tokensMap.get(chString);
-                    t.string = chString;
+                    t.kind = this.tokensMap.get(lookaheadString);
+                    t.string = lookaheadString;
                     break;
 
                 case '/':
@@ -245,7 +221,7 @@ public class Scanner {
                         t = null;  // set it to null so the parser can completely skip it
                     } else {  // regular division
                         t.kind = TokenCode.DIVIDE;
-                        t.string = chString;
+                        t.string = lookaheadString;
                     }
                     break;
 
@@ -257,10 +233,10 @@ public class Scanner {
                     this.nextCharacter();
                     if (this.lookahead == '=') {
                         this.nextCharacter();  // continue scanning after the =
-                        chString += "=";
+                        lookaheadString += "=";
                     }
-                    t.kind = this.tokensMap.get(chString);
-                    t.string = chString;
+                    t.kind = this.tokensMap.get(lookaheadString);
+                    t.string = lookaheadString;
                     break;
 
                 case '&':

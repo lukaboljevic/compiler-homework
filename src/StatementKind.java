@@ -9,8 +9,13 @@ public class StatementKind {
     public static final String PRINT_STATEMENT = "PRINT statement";
 
     // Expressions
-    public static final String ASSIGN_EXPR = "Assign expression";
-    public static final String BINARY_EXPR = "Binary expression";
-    public static final String UNARY_EXPR = "Unary expression";
+    public static final String ASSIGN_EXPR = "ASSIGN expression";
+    public static final String BINARY_EXPR = "BINARY expression";
+    public static final String UNARY_EXPR = "UNARY expression";
+
+    // Expressions 'endings'/terminals
+    public static final String CONSTANT = "CONSTANT";
+    public static final String IDENTIFIER = "IDENTIFIER";
+    public static final String READ_OPERATION = "READ operation";
 
 }

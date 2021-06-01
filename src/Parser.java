@@ -50,15 +50,143 @@ public class Parser {
 
     //------------------- Printing methods ----------------------
 
+    /*
+    I started off the printing process by just passing in `numTabs + 1` as the parameter
+    to the next command in sequence, but through trial and error I ended up with what I did.
+    There is no real... algorithm? I just started with the most logical approach (which is
+    to pass in numTabs + 1 to every child statement/expression) and just went from there.
+     */
+
+    private String generateTabs(int numTabs) {
+        String res = "";
+        for (int i = 0; i < numTabs; i++) {
+            res = res.concat("\t");
+        }
+        return res;
+    }
+
     private void printProgram(Program program) {
-        System.out.println("DECLARATIONS\n");
+        System.out.println("\nDECLARATIONS\n");
         for (Declaration declaration : program.declarations) {
             System.out.printf("\tType: %s, Name: %s\n", declaration.type, declaration.identifier);
         }
-        System.out.println("\nCOMMANDS\n");
-        for (Statement statement : program.commandSequence.statements) {
-            System.out.println("\t" + statement.kind);
+        System.out.println();
+        printCommandSequence(program.commandSequence, 1);
+    }
+
+    private void printCommandSequence(CommandSequence commandSequence, int numTabs) {
+        System.out.println(generateTabs(numTabs - 1) + "COMMANDS:");
+        for (Statement statement : commandSequence.statements) {
+            if (statement == null) {
+                continue;
+            }
+            this.printStatement(statement, numTabs);
         }
+    }
+
+    private void printStatement(Statement statement, int numTabs) {
+        if (statement == null){
+            System.out.println(generateTabs(numTabs) + "NULL STATEMENT");
+            return;
+        }
+        switch (statement.kind) {
+            case StatementKind.IF_STATEMENT -> printIfStatement((StatementIf) statement, numTabs);
+            case StatementKind.WHILE_STATEMENT -> printWhileStatement((StatementWhile) statement, numTabs);
+            case StatementKind.FOR_STATEMENT -> printForStatement((StatementFor) statement, numTabs);
+            case StatementKind.BREAK_STATEMENT -> System.out.println(generateTabs(numTabs) + statement.kind);
+            case StatementKind.PRINT_STATEMENT -> printPrintStatement((StatementPrint) statement, numTabs);
+            case StatementKind.ASSIGN_EXPR -> printAssignExpr((ExpressionAssign) statement, numTabs);
+            case StatementKind.BINARY_EXPR, StatementKind.UNARY_EXPR -> printExpr((Expression) statement,
+                    numTabs);
+        }
+    }
+
+    private void printIfStatement(StatementIf ifStatement, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + ifStatement.kind);
+        System.out.println(tabs + "\t" + "CONDITION:");
+        this.printExpr(ifStatement.expression, numTabs + 2);
+        this.printCommandSequence(ifStatement.commandSequence, numTabs + 2);
+        this.printEndIfStatement(ifStatement.endIfStatement, numTabs);
+    }
+
+    private void printEndIfStatement(StatementEndIf endIfStatement, int numTabs) {
+        if (endIfStatement == null){
+            System.out.println(generateTabs(numTabs) + "NULL END IF STATEMENT");
+            return;
+        }
+        String tabs = generateTabs(numTabs);
+        if (endIfStatement.commandSequence != null) {
+            System.out.println(tabs + "ELSE statement");
+            this.printCommandSequence(endIfStatement.commandSequence, numTabs + 2);
+        } else {
+            System.out.println(tabs + "END IF");
+        }
+    }
+
+    private void printWhileStatement(StatementWhile whileStatement, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + whileStatement.kind);
+        System.out.println(tabs + "\t" + "CONDITION:");
+        this.printExpr(whileStatement.expression, numTabs + 2);
+        this.printCommandSequence(whileStatement.commandSequence, numTabs + 2);
+    }
+
+    private void printForStatement(StatementFor forStatement, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + forStatement.kind);
+        this.printAssignExpr(forStatement.first, numTabs + 1);
+        System.out.println(tabs + "\t" + "EXPRESSION:");
+        this.printExpr(forStatement.expression, numTabs + 2);
+        this.printAssignExpr(forStatement.second, numTabs + 1);
+        this.printCommandSequence(forStatement.commandSequence, numTabs + 2);
+    }
+
+    private void printPrintStatement(StatementPrint printStatement, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + printStatement.kind);
+        System.out.println(tabs + "\t" + "EXPRESSION:");
+        this.printExpr(printStatement.expression, numTabs + 2);
+    }
+
+    private void printAssignExpr(ExpressionAssign assign, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + assign.kind);
+        System.out.println(tabs + "\t" + "IDENTIFIER: " + assign.identifier);
+        System.out.println(tabs + "\t" + "EXPRESSION:");
+        this.printExpr(assign.expression, numTabs + 2);
+    }
+
+    private void printExpr(Expression expression, int numTabs) {
+        if (expression == null){
+            System.out.println(generateTabs(numTabs) + "NULL EXPRESSION");
+            return;
+        }
+        switch (expression.kind) {
+            case StatementKind.BINARY_EXPR -> this.printBinaryExpr(expression, numTabs);
+            case StatementKind.UNARY_EXPR -> this.printUnaryExpr(expression, numTabs);
+            case StatementKind.CONSTANT, StatementKind.IDENTIFIER,
+                    StatementKind.READ_OPERATION -> System.out.println(generateTabs(numTabs) +
+                    expression.kind + ": " + expression.value);
+        }
+    }
+
+    private void printBinaryExpr(Expression binary, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + binary.kind);
+        System.out.println(tabs + "\t" + "LEFT OPERAND:");
+        this.printExpr(binary.left, numTabs + 2);
+        System.out.println(tabs + "\t" + "OPERATOR: " + binary.operator);
+        System.out.println(tabs + "\t" + "RIGHT OPERAND:");
+        this.printExpr(binary.right, numTabs + 2);
+    }
+
+    private void printUnaryExpr(Expression unary, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + unary.kind);
+        System.out.println(tabs + "\t" + "OPERATOR: " + unary.operator);
+        System.out.println(tabs + "\t" + "EXPRESSION:");
+        this.printExpr(unary.left, numTabs + 2);
     }
 
     //------------------- Auxiliary methods ----------------------
@@ -319,7 +447,7 @@ public class Parser {
                 case LESS_EQUAL -> "<=";
                 case GREATER -> ">";
                 case GREATER_EQUAL -> ">=";
-                default -> "wtf";
+                default -> "";
             };
             this.scan();
             Expression right = this.Expr4();
@@ -391,14 +519,19 @@ public class Parser {
         // Expr7 -> Constant | ident | ( Expr ) | READINT () | READSTRING () | READDOUBLE () | READBOOL ()
         if (this.firstMap.get("Constant").contains(this.sym)) {
             // Constant -> integerConstant | boolConstant | stringConstant | doubleConstant
-            String constantType = this.sym.toString();
+            Expression constant = new Expression("", null, null, StatementKind.CONSTANT);
+            constant.value = switch (this.sym) {
+                case INTEGER_CONSTANT -> this.la.intVal; // integer value
+                case DOUBLE_CONSTANT -> this.la.doubleVal; // double value
+                case BOOL_CONSTANT, STRING_CONSTANT -> this.la.string; // true/false/someString
+                default -> "No value";
+            };
             this.scan();
-            return new Expression("", null, null, constantType);
+            return constant;
         } else if (this.sym == TokenCode.IDENTIFIER) {
-            String identifier = this.la.string;
+            Expression result = new Expression("", null, null, StatementKind.IDENTIFIER);
+            result.value = this.la.string; // identifier name
             this.scan();
-            Expression result = new Expression("", null, null, "Identifier");
-            result.value = identifier;
             return result;
         } else if (this.sym == TokenCode.LEFT_REGULAR) {
             this.scan();
@@ -407,9 +540,12 @@ public class Parser {
             return result;
         } else if (this.firstMap.get("ReadOperations").contains(this.sym)) {
             // read operation
-            String readType = this.sym.toString();
+            Expression read = new Expression("", null, null, StatementKind.READ_OPERATION);
+            read.value = this.sym.toString(); // TokenCode.READ*
             this.scan();
-            return new Expression("", null, null, readType);
+            this.check(TokenCode.LEFT_REGULAR);
+            this.check(TokenCode.RIGHT_REGULAR);
+            return read;
         } else {
             this.error("Expression expected");
             this.scan();

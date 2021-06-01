@@ -2,7 +2,7 @@ public class Expression extends Statement {
 
     String operator;
     Expression left, right;
-    Object value;  // used for identifier names
+    Object value; // identifier name, constant value, type of read operation
 
     Expression(String operator, Expression left, Expression right, String kind){
         this.operator = operator;
