@@ -1,9 +1,11 @@
 LET
-    integer ime1;
-    integer IME2;
+    integer a;
+    integer b;
     string str1;
     double ddd;
-    integer IFBREAK;
+    integer x;
+    bool y;
+    integer i;
 IN
 {
     a = (1 + 2) * 3.5;
@@ -26,7 +28,6 @@ IN
     }
     */
     FI
-    // kurac
     FOR(i = 0; i < 5; i = i + 1){
         a = a + 2;
     }

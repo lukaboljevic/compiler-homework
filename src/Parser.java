@@ -11,10 +11,12 @@ public class Parser {
 
     // maps a nonterminal to it's FirstSet; the FirstSet is a list of codes from above
     private final HashMap<String, ArrayList<TokenCode>> firstMap;
+    private final HashMap<String, Pair> symbolTable;
     private final Scanner scanner;
 
     public Parser(Scanner s) {
 
+        this.symbolTable = new HashMap<>();
         this.firstMap = new HashMap<>();
         this.firstMap.put("Declarations", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_TYPE,
                 TokenCode.BOOL_TYPE, TokenCode.STRING_TYPE, TokenCode.DOUBLE_TYPE)));
@@ -46,6 +48,13 @@ public class Parser {
 
         // Print the AST/Parse tree/whatever the hell
         this.printProgram(program);
+        System.out.println("\n----------- SYMBOL TABLE -----------\n");
+        for (String identifier : this.symbolTable.keySet()) {
+            Pair information = this.symbolTable.get(identifier);
+            System.out.printf("IDENTIFIER: %s, TYPE: %s\nEXPRESSION:\n", identifier, information.type);
+            this.printExpr(information.expression, 1);
+            System.out.println();
+        }
     }
 
     //------------------- Printing methods ----------------------
@@ -108,7 +117,7 @@ public class Parser {
     }
 
     private void printEndIfStatement(StatementEndIf endIfStatement, int numTabs) {
-        if (endIfStatement == null){
+        if (endIfStatement == null) {
             System.out.println(generateTabs(numTabs) + "NULL END IF STATEMENT");
             return;
         }
@@ -155,7 +164,7 @@ public class Parser {
     }
 
     private void printExpr(Expression expression, int numTabs) {
-        if (expression == null){
+        if (expression == null) {
             System.out.println(generateTabs(numTabs) + "NULL EXPRESSION");
             return;
         }
@@ -253,6 +262,7 @@ public class Parser {
         String identifier = this.la.string;
         this.check(TokenCode.IDENTIFIER);
         this.check(TokenCode.SEMICOLON);
+        this.symbolTable.put(identifier, new Pair(type, null)); // for now there is no expression
         return new Declaration(type, identifier);
     }
 
@@ -386,6 +396,11 @@ public class Parser {
         this.check(TokenCode.IDENTIFIER);
         this.check(TokenCode.SINGLE_EQUALS);
         Expression expression = this.Expr();
+        if (this.symbolTable.containsKey(identifier)) {
+            this.symbolTable.get(identifier).expression = expression;
+        } else {
+            this.error("Identifier " + identifier + " has not been declared");
+        }
         return new ExpressionAssign(identifier, expression);
     }
 
@@ -527,8 +542,12 @@ public class Parser {
             return constant;
         } else if (this.sym == TokenCode.IDENTIFIER) {
             Expression result = new Expression("", null, null, StatementKind.IDENTIFIER);
-            result.value = this.la.string; // identifier name
+            String identifier = this.la.string;
+            result.value = identifier; // identifier name
             this.scan();
+            if (!this.symbolTable.containsKey(identifier)) {
+                this.error("Identifier " + identifier + " has not been declared");
+            }
             return result;
         } else if (this.sym == TokenCode.LEFT_REGULAR) {
             this.scan();

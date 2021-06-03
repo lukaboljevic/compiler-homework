@@ -12,7 +12,11 @@ public class TestParser {
 
         try {
             Parser parser = new Parser(new Scanner(new InputStreamReader(new FileInputStream(path))));
-            System.out.println(parser.getErrors() + " errors detected");
+            if (parser.getErrors() == 0) {
+                System.out.println("Parsing completed successfully.");
+            } else {
+                System.out.printf("There have been %d detected errors", parser.getErrors());
+            }
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("-- cannot open input file " + path);
