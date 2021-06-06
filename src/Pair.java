@@ -4,7 +4,7 @@ public class Pair {
     String type;
     Expression expression;
 
-    public Pair(String type, Expression expression){
+    public Pair(String type, Expression expression) {
         this.type = type;
         this.expression = expression;
     }

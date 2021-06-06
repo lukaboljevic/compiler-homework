@@ -77,6 +77,9 @@ public class Parser {
     private void printProgram(Program program) {
         System.out.println("\nDECLARATIONS\n");
         for (Declaration declaration : program.declarations) {
+            if (declaration == null) {
+                continue;
+            }
             System.out.printf("\tType: %s, Name: %s\n", declaration.type, declaration.identifier);
         }
         System.out.println();
@@ -125,7 +128,8 @@ public class Parser {
         if (endIfStatement.commandSequence != null) {
             System.out.println(tabs + "ELSE statement");
             this.printCommandSequence(endIfStatement.commandSequence, numTabs + 2);
-        } else {
+        }
+        else {
             System.out.println(tabs + "END IF");
         }
     }
@@ -217,7 +221,8 @@ public class Parser {
                 error("Identifier name too long (must be <= 31)");
             }
             this.scan();  // read ahead
-        } else {
+        }
+        else {
             this.error(expected.toString() + " expected");
         }
     }
@@ -261,9 +266,16 @@ public class Parser {
         String type = this.Type();
         String identifier = this.la.string;
         this.check(TokenCode.IDENTIFIER);
-        this.check(TokenCode.SEMICOLON);
-        this.symbolTable.put(identifier, new Pair(type, null)); // for now there is no expression
-        return new Declaration(type, identifier);
+        if (this.symbolTable.containsKey(identifier)) {
+            this.error("Identifier " + identifier + " has already been declared");
+            this.check(TokenCode.SEMICOLON);
+            return null;
+        }
+        else {
+            this.symbolTable.put(identifier, new Pair(type, null)); // for now there is no expression
+            this.check(TokenCode.SEMICOLON);
+            return new Declaration(type, identifier);
+        }
     }
 
     private String Type() {
@@ -298,23 +310,30 @@ public class Parser {
          */
         if (this.sym == TokenCode.IF) {
             return this.IfStmt();
-        } else if (this.sym == TokenCode.WHILE) {
+        }
+        else if (this.sym == TokenCode.WHILE) {
             return this.WhileStmt();
-        } else if (this.sym == TokenCode.FOR) {
+        }
+        else if (this.sym == TokenCode.FOR) {
             return this.ForStmt();
-        } else if (this.sym == TokenCode.BREAK) {
+        }
+        else if (this.sym == TokenCode.BREAK) {
             return this.BreakStmt();
-        } else if (this.sym == TokenCode.PRINT) {
+        }
+        else if (this.sym == TokenCode.PRINT) {
             return this.PrintStmt();
-        } else if (this.sym == TokenCode.IDENTIFIER) {
+        }
+        else if (this.sym == TokenCode.IDENTIFIER) {
             ExpressionAssign assign = this.AssignExpr();
             this.check(TokenCode.SEMICOLON);
             return assign;
-        } else if (this.firstMap.get("Expr").contains(this.sym)) {
+        }
+        else if (this.firstMap.get("Expr").contains(this.sym)) {
             Expression expr = this.Expr();
             this.check(TokenCode.SEMICOLON);
             return expr;
-        } else {
+        }
+        else {
             this.error("Statement error");
             return null;
         }
@@ -338,10 +357,12 @@ public class Parser {
             CommandSequence cs = this.CommandSequence();
             this.check(TokenCode.FI);
             return new StatementEndIf(cs);
-        } else if (this.sym == TokenCode.FI) {
+        }
+        else if (this.sym == TokenCode.FI) {
             this.scan();
             return new StatementEndIf(null);
-        } else {
+        }
+        else {
             this.error("Invalid end for IF statement");
             return null;
         }
@@ -398,7 +419,8 @@ public class Parser {
         Expression expression = this.Expr();
         if (this.symbolTable.containsKey(identifier)) {
             this.symbolTable.get(identifier).expression = expression;
-        } else {
+        }
+        else {
             this.error("Identifier " + identifier + " has not been declared");
         }
         return new ExpressionAssign(identifier, expression);
@@ -439,7 +461,8 @@ public class Parser {
             this.scan();
             Expression right = this.Expr3();
             return new Expression(operator, left, right, StatementKind.BINARY_EXPR);
-        } else {
+        }
+        else {
             return left;
         }
     }
@@ -464,7 +487,8 @@ public class Parser {
             this.scan();
             Expression right = this.Expr4();
             return new Expression(operator, left, right, StatementKind.BINARY_EXPR);
-        } else {
+        }
+        else {
             return left;
         }
     }
@@ -483,7 +507,8 @@ public class Parser {
             this.scan();
             Expression right = this.Expr5();
             return this.Expr4Prim(new Expression(operator, left, right, StatementKind.BINARY_EXPR));
-        } else {
+        }
+        else {
             return left;
         }
     }
@@ -507,7 +532,8 @@ public class Parser {
             this.scan();
             Expression right = this.Expr6();
             return this.Expr5Prim(new Expression(operator, left, right, StatementKind.BINARY_EXPR));
-        } else {
+        }
+        else {
             return left;
         }
     }
@@ -522,7 +548,8 @@ public class Parser {
         Expression expr = this.Expr7();
         if (operator.equals("")) {
             return expr;
-        } else {
+        }
+        else {
             return new Expression(operator, expr, null, StatementKind.UNARY_EXPR);
         }
     }
@@ -540,7 +567,8 @@ public class Parser {
             };
             this.scan();
             return constant;
-        } else if (this.sym == TokenCode.IDENTIFIER) {
+        }
+        else if (this.sym == TokenCode.IDENTIFIER) {
             Expression result = new Expression("", null, null, StatementKind.IDENTIFIER);
             String identifier = this.la.string;
             result.value = identifier; // identifier name
@@ -549,12 +577,14 @@ public class Parser {
                 this.error("Identifier " + identifier + " has not been declared");
             }
             return result;
-        } else if (this.sym == TokenCode.LEFT_REGULAR) {
+        }
+        else if (this.sym == TokenCode.LEFT_REGULAR) {
             this.scan();
             Expression result = this.Expr();
             this.check(TokenCode.RIGHT_REGULAR);
             return result;
-        } else if (this.firstMap.get("ReadOperations").contains(this.sym)) {
+        }
+        else if (this.firstMap.get("ReadOperations").contains(this.sym)) {
             // read operation
             Expression read = new Expression("", null, null, StatementKind.READ_OPERATION);
             read.value = this.sym.toString(); // TokenCode.READ*
@@ -562,7 +592,8 @@ public class Parser {
             this.check(TokenCode.LEFT_REGULAR);
             this.check(TokenCode.RIGHT_REGULAR);
             return read;
-        } else {
+        }
+        else {
             this.error("Expression expected");
             this.scan();
             return null;

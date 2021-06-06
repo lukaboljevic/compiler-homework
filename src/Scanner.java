@@ -48,7 +48,8 @@ public class Scanner {
             if (this.lookahead == this.eol) {
                 this.line++;
                 this.col = 0;
-            } else if (this.lookahead == '\uffff')
+            }
+            else if (this.lookahead == '\uffff')
                 this.lookahead = this.eofCh;
         } catch (IOException e) {
             this.lookahead = this.eofCh;
@@ -73,15 +74,18 @@ public class Scanner {
             if (t.string.startsWith("0X") || t.string.startsWith("0x")) {
                 // hex integer, parseInt function does not need the 0x/0X to parse it.
                 t.intVal = Integer.parseInt(t.string.substring(2), 16);
-            } else {
+            }
+            else {
                 // regular decimal integer
                 t.intVal = Integer.parseInt(t.string);
             }
-        } else if (t.string.matches(doubleRegex)) {
+        }
+        else if (t.string.matches(doubleRegex)) {
             // double value
             t.kind = TokenCode.DOUBLE_CONSTANT;
             t.doubleVal = Double.parseDouble(t.string);
-        } else {
+        }
+        else {
             System.out.println("Scanner -- line " + this.line + " col " + this.col + ": Invalid number constant");
             t.kind = TokenCode.NONE;
         }
@@ -120,10 +124,10 @@ public class Scanner {
             }
         }
 
-        if(t.string.matches(identifierRegex)){
+        if (t.string.matches(identifierRegex)) {
             t.kind = TokenCode.IDENTIFIER;  // it's length will be checked by the Parser class
         }
-        else{
+        else {
             System.out.println("Scanner -- line " + this.line + " col " + this.col + ": Invalid identifier " +
                     "name");
             t.kind = TokenCode.NONE;
@@ -143,7 +147,8 @@ public class Scanner {
         if (this.lookahead == '\"') {
             // it ended with a " before we found a \n so it's a valid constant
             t.kind = TokenCode.STRING_CONSTANT;
-        } else {
+        }
+        else {
             t.kind = TokenCode.NONE;
             System.out.println("Scanner -- line: " + this.line + " col: " + this.col + ": found a new line," +
                     "either the string contains it or the string constant is not properly closed");
@@ -165,9 +170,11 @@ public class Scanner {
         // Based on the lookahead character, perform the necessary operation(s)
         if (('a' <= this.lookahead && this.lookahead <= 'z') || ('A' <= this.lookahead && this.lookahead <= 'Z')) {
             this.readName(t);
-        } else if ('0' <= this.lookahead && this.lookahead <= '9') {
+        }
+        else if ('0' <= this.lookahead && this.lookahead <= '9') {
             this.readNumber(t);
-        } else {
+        }
+        else {
             String lookaheadString = Character.toString(this.lookahead);
             switch (this.lookahead) {
                 case '\"':
@@ -199,7 +206,8 @@ public class Scanner {
                         }
                         this.nextCharacter();
                         t = null;  // set it to null so the parser can completely skip it
-                    } else if (lookahead == '*') {  // multi line comment
+                    }
+                    else if (lookahead == '*') {  // multi line comment
                         char prev;
                         this.nextCharacter();
                         while (this.lookahead != this.eofCh && this.lookahead != '/') {
@@ -208,18 +216,21 @@ public class Scanner {
                             if (this.lookahead == '/') {
                                 if (prev == '*') {
                                     break;
-                                } else
+                                }
+                                else
                                     this.nextCharacter();
                                 while (this.lookahead == '/') this.nextCharacter();
                             }
                         }
                         if (this.lookahead == this.eofCh) {
                             t.kind = TokenCode.NONE;
-                        } else {
+                        }
+                        else {
                             this.nextCharacter();
                         }
                         t = null;  // set it to null so the parser can completely skip it
-                    } else {  // regular division
+                    }
+                    else {  // regular division
                         t.kind = TokenCode.DIVIDE;
                         t.string = lookaheadString;
                     }
@@ -246,7 +257,8 @@ public class Scanner {
                         this.nextCharacter();
                         t.kind = TokenCode.AND;
                         t.string = "&&";
-                    } else {
+                    }
+                    else {
                         t.kind = TokenCode.NONE;
                     }
                     break;
@@ -258,7 +270,8 @@ public class Scanner {
                         this.nextCharacter();
                         t.kind = TokenCode.OR;
                         t.string = "||";
-                    } else {
+                    }
+                    else {
                         t.kind = TokenCode.NONE;
                     }
                     break;

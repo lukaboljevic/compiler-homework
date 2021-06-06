@@ -14,7 +14,8 @@ public class TestParser {
             Parser parser = new Parser(new Scanner(new InputStreamReader(new FileInputStream(path))));
             if (parser.getErrors() == 0) {
                 System.out.println("Parsing completed successfully.");
-            } else {
+            }
+            else {
                 System.out.printf("There have been %d detected errors", parser.getErrors());
             }
         } catch (IOException e) {
