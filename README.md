@@ -14,10 +14,10 @@ to `path += "\\test.txt";`, as in the CMD, you need to navigate to the `src` fol
 
 # Grammar
 
-The grammar is LL(1). That means, for every nonterminal A and  every string  of symbols b and c such that b =/= c, and A -> b | c,
+The grammar is LL(1). That means, for every nonterminal A and for every string of symbols U and V such that U =/= V, and A -> U | V,
 we have that:
-1. First(b) ∩ First(c) is an empty set,
-2. Out of at most one of b and c you can produce an empty string,
-3. If b =>* eps, then First(c) ∩ Follow(A) is also an empty set.
+1. First(U) ∩ First(V) is an empty set,
+2. Either only U or only V can produce an empty string (eps),
+3. If U =>* eps, then First(V) ∩ Follow(A) is also an empty set.
 
-Conditions 1. and 2. are 100% satisfied. I have checked number 3. "in my head", but there shouldn't be any problems regardless.
+Conditions 1. and 2. are 100% satisfied. I have checked number 3 "in my head", but there shouldn't be any problems regardless.
