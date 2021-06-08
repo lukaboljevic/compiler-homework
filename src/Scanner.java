@@ -330,6 +330,8 @@ public class Scanner {
         this.keywords.put("READSTRING", TokenCode.READSTRING);
         this.keywords.put("READBOOL", TokenCode.READBOOL);
         this.keywords.put("READDOUBLE", TokenCode.READDOUBLE);
+        this.keywords.put("REPEAT", TokenCode.REPEAT);
+        this.keywords.put("UNTIL", TokenCode.UNTIL);
     }
 
     private void fillDatatypesMap() {

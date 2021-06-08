@@ -7,6 +7,7 @@ public class StatementKind {
     public static final String FOR_STATEMENT = "FOR statement";
     public static final String BREAK_STATEMENT = "BREAK statement";
     public static final String PRINT_STATEMENT = "PRINT statement";
+    public static final String REPEAT_STATEMENT = "REPEAT statement";
 
     // Expressions
     public static final String ASSIGN_EXPR = "ASSIGN expression";

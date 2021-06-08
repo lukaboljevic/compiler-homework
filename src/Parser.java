@@ -21,7 +21,7 @@ public class Parser {
         this.firstMap.put("Declarations", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_TYPE,
                 TokenCode.BOOL_TYPE, TokenCode.STRING_TYPE, TokenCode.DOUBLE_TYPE)));
         this.firstMap.put("CommandSequence", new ArrayList<>(Arrays.asList(TokenCode.IF, TokenCode.WHILE,
-                TokenCode.FOR, TokenCode.BREAK, TokenCode.PRINT, TokenCode.IDENTIFIER,
+                TokenCode.FOR, TokenCode.BREAK, TokenCode.PRINT, TokenCode.REPEAT, TokenCode.IDENTIFIER,
                 TokenCode.INTEGER_CONSTANT, TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT,
                 TokenCode.DOUBLE_CONSTANT, TokenCode.LEFT_REGULAR, TokenCode.READINT, TokenCode.READSTRING,
                 TokenCode.READDOUBLE, TokenCode.READBOOL)));
@@ -48,13 +48,14 @@ public class Parser {
 
         // Print the AST/Parse tree/whatever the hell
         this.printProgram(program);
-        System.out.println("\n----------- SYMBOL TABLE -----------\n");
-        for (String identifier : this.symbolTable.keySet()) {
-            Pair information = this.symbolTable.get(identifier);
-            System.out.printf("IDENTIFIER: %s, TYPE: %s\nEXPRESSION:\n", identifier, information.type);
-            this.printExpr(information.expression, 1);
-            System.out.println();
-        }
+        System.out.println();
+//        System.out.println("----------- SYMBOL TABLE -----------\n");
+//        for (String identifier : this.symbolTable.keySet()) {
+//            Pair information = this.symbolTable.get(identifier);
+//            System.out.printf("IDENTIFIER: %s, TYPE: %s\nEXPRESSION:\n", identifier, information.type);
+//            this.printExpr(information.expression, 1);
+//            System.out.println();
+//        }
     }
 
     //------------------- Printing methods ----------------------
@@ -104,6 +105,7 @@ public class Parser {
             case StatementKind.FOR_STATEMENT -> printForStatement((StatementFor) statement, numTabs);
             case StatementKind.BREAK_STATEMENT -> System.out.println(generateTabs(numTabs) + statement.kind);
             case StatementKind.PRINT_STATEMENT -> printPrintStatement((StatementPrint) statement, numTabs);
+            case StatementKind.REPEAT_STATEMENT -> printRepeatStatement((StatementRepeat) statement, numTabs);
             case StatementKind.ASSIGN_EXPR -> printAssignExpr((ExpressionAssign) statement, numTabs);
             case StatementKind.BINARY_EXPR, StatementKind.UNARY_EXPR -> printExpr((Expression) statement,
                     numTabs);
@@ -157,6 +159,14 @@ public class Parser {
         System.out.println(tabs + printStatement.kind);
         System.out.println(tabs + "\t" + "EXPRESSION:");
         this.printExpr(printStatement.expression, numTabs + 2);
+    }
+
+    private void printRepeatStatement(StatementRepeat repeatStatement, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + repeatStatement.kind);
+        this.printCommandSequence(repeatStatement.commandSequence, numTabs + 2);
+        System.out.println(tabs + "\t" + "UNTIL:");
+        this.printExpr(repeatStatement.expression, numTabs + 2);
     }
 
     private void printAssignExpr(ExpressionAssign assign, int numTabs) {
@@ -323,6 +333,11 @@ public class Parser {
         else if (this.sym == TokenCode.PRINT) {
             return this.PrintStmt();
         }
+        else if (this.sym == TokenCode.REPEAT) {
+            StatementRepeat repeat = this.RepeatStmt();
+            this.check(TokenCode.SEMICOLON);
+            return repeat;
+        }
         else if (this.sym == TokenCode.IDENTIFIER) {
             ExpressionAssign assign = this.AssignExpr();
             this.check(TokenCode.SEMICOLON);
@@ -409,6 +424,17 @@ public class Parser {
         this.check(TokenCode.RIGHT_REGULAR);
         this.check(TokenCode.SEMICOLON);
         return new StatementPrint(expression);
+    }
+
+    private StatementRepeat RepeatStmt() {
+        // RepeatStmt -> REPEAT CommandSequence UNTIL ( Expr )
+        this.check(TokenCode.REPEAT);
+        CommandSequence cs = this.CommandSequence();
+        this.check(TokenCode.UNTIL);
+        this.check(TokenCode.LEFT_REGULAR);
+        Expression expr = this.Expr();
+        this.check(TokenCode.RIGHT_REGULAR);
+        return new StatementRepeat(cs, expr);
     }
 
     private ExpressionAssign AssignExpr() {

@@ -6,13 +6,13 @@ LET
     integer x;
     bool y;
     integer i;
-    integer a;
 IN
 {
-    a = (1 + 2) * 3.5;
-    b = true;
-    x = -x;
-    x = READINT();
-    y = READBOOL();
+    REPEAT
+    {
+        a = a + 1;
+        a = a + 2;
+    }
+    UNTIL(a < 200);
 }
 END

@@ -16,6 +16,8 @@ public enum TokenCode {
     READSTRING,
     READBOOL,
     READDOUBLE,
+    REPEAT,
+    UNTIL,
 
     // Identifier and data types
     IDENTIFIER,
