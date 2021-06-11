@@ -25,10 +25,6 @@ public class Parser {
                 TokenCode.INTEGER_CONSTANT, TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT,
                 TokenCode.DOUBLE_CONSTANT, TokenCode.LEFT_REGULAR, TokenCode.READINT, TokenCode.READSTRING,
                 TokenCode.READDOUBLE, TokenCode.READBOOL)));
-        this.firstMap.put("Expr", new ArrayList<>(Arrays.asList(TokenCode.IDENTIFIER,
-                TokenCode.INTEGER_CONSTANT, TokenCode.BOOL_CONSTANT,
-                TokenCode.STRING_CONSTANT, TokenCode.DOUBLE_CONSTANT, TokenCode.LEFT_REGULAR,
-                TokenCode.READINT, TokenCode.READSTRING, TokenCode.READDOUBLE, TokenCode.READBOOL)));
         this.firstMap.put("Compare", new ArrayList<>(Arrays.asList(TokenCode.LESS, TokenCode.LESS_EQUAL,
                 TokenCode.GREATER, TokenCode.GREATER_EQUAL)));
         this.firstMap.put("Constant", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_CONSTANT,
