@@ -316,7 +316,7 @@ public class Parser {
     private Statement Stmt() {
         /*
         Stmt -> IfStmt  | WhileStmt |  ForStmt |
-			    BreakStmt  | PrintStmt | AssignExpr ; | Expr ;
+			    BreakStmt  | PrintStmt | RepeatStmt ; | AssignExpr ;
          */
         if (this.sym == TokenCode.IF) {
             return this.IfStmt();
@@ -334,19 +334,12 @@ public class Parser {
             return this.PrintStmt();
         }
         else if (this.sym == TokenCode.REPEAT) {
-            StatementRepeat repeat = this.RepeatStmt();
-            this.check(TokenCode.SEMICOLON);
-            return repeat;
+            return this.RepeatStmt();
         }
         else if (this.sym == TokenCode.IDENTIFIER) {
             ExpressionAssign assign = this.AssignExpr();
             this.check(TokenCode.SEMICOLON);
             return assign;
-        }
-        else if (this.firstMap.get("Expr").contains(this.sym)) {
-            Expression expr = this.Expr();
-            this.check(TokenCode.SEMICOLON);
-            return expr;
         }
         else {
             this.error("Statement error");
@@ -427,13 +420,14 @@ public class Parser {
     }
 
     private StatementRepeat RepeatStmt() {
-        // RepeatStmt -> REPEAT CommandSequence UNTIL ( Expr )
+        // RepeatStmt -> REPEAT CommandSequence UNTIL ( Expr ) ;
         this.check(TokenCode.REPEAT);
         CommandSequence cs = this.CommandSequence();
         this.check(TokenCode.UNTIL);
         this.check(TokenCode.LEFT_REGULAR);
         Expression expr = this.Expr();
         this.check(TokenCode.RIGHT_REGULAR);
+        this.check(TokenCode.SEMICOLON);
         return new StatementRepeat(cs, expr);
     }
 
