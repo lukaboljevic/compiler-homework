@@ -8,6 +8,7 @@ LET
     integer i;
 IN
 {
+    /*
     REPEAT
     {
         a = a + 1;
@@ -15,5 +16,8 @@ IN
     }
     UNTIL(a < 200);
     a = (1 + (2 / 3 * (2 + 3)) - (14 % 5)) && 56;
+    */
+    a = a + b;
+    a = (a < 5) ? 17 + 5 % 4 : b + ddd;
 }
 END

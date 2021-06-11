@@ -191,6 +191,8 @@ public class Scanner {
                 case '%':
                 case '{':
                 case '}':
+                case '?':
+                case ':':
                     this.nextCharacter();  // continue scanning
                     t.kind = this.tokensMap.get(lookaheadString);
                     t.string = lookaheadString;
@@ -312,6 +314,8 @@ public class Scanner {
         this.tokensMap.put(")", TokenCode.RIGHT_REGULAR);
         this.tokensMap.put("{", TokenCode.LEFT_CURLY);
         this.tokensMap.put("}", TokenCode.RIGHT_CURLY);
+        this.tokensMap.put("?", TokenCode.QUESTION_MARK);
+        this.tokensMap.put(":", TokenCode.COLON);
     }
 
     private void fillKeywordsMap() {

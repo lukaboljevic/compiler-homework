@@ -16,6 +16,7 @@ PrintStmt		-> PRINT (Expr) ;
 RepeatStmt      -> REPEAT CommandSequence UNTIL ( Expr ) ;
 
 AssignExpr	-> ident = Expr
+AssignExprEnd   -> ? Expr : Expr | eps
 
 Expr		-> Expr2 Expr'
 Expr'		-> Logical Expr2 Expr' | eps

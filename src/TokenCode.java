@@ -47,6 +47,8 @@ public enum TokenCode {
     RIGHT_REGULAR,
     LEFT_CURLY,
     RIGHT_CURLY,
+    QUESTION_MARK,
+    COLON,
 
     // Constants
     INTEGER_CONSTANT,

@@ -171,6 +171,21 @@ public class Parser {
         System.out.println(tabs + "\t" + "IDENTIFIER: " + assign.identifier);
         System.out.println(tabs + "\t" + "EXPRESSION:");
         this.printExpr(assign.expression, numTabs + 2);
+        System.out.println(tabs + "\t" + "END:");
+        this.printAssignExprEnd(assign.end, numTabs + 1);
+    }
+
+    private void printAssignExprEnd(ExpressionAssignEnd end, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        if (end == null){
+            System.out.println(tabs + "IMMEDIATE ASSIGN EXPR END");
+        }
+        else {
+            System.out.println(tabs + "\t" + "FIRST EXPR:");
+            this.printExpr(end.first, numTabs + 2);
+            System.out.println(tabs + "\t" + "SECOND EXPR:");
+            this.printExpr(end.second, numTabs + 2);
+        }
     }
 
     private void printExpr(Expression expression, int numTabs) {
@@ -439,7 +454,21 @@ public class Parser {
         else {
             this.error("Identifier " + identifier + " has not been declared");
         }
-        return new ExpressionAssign(identifier, expression);
+        ExpressionAssignEnd end = this.AssignExprEnd();
+        return new ExpressionAssign(identifier, expression, end);
+    }
+
+    private ExpressionAssignEnd AssignExprEnd() {
+        if (this.sym == TokenCode.QUESTION_MARK) {
+            this.scan();
+            Expression first = this.Expr();
+            this.check(TokenCode.COLON);
+            Expression second = this.Expr();
+            return new ExpressionAssignEnd(first, second);
+        }
+        else {
+            return null;
+        }
     }
 
     private Expression Expr() {

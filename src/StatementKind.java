@@ -11,6 +11,7 @@ public class StatementKind {
 
     // Expressions
     public static final String ASSIGN_EXPR = "ASSIGN expression";
+    public static final String ASSIGN_EXPR_END = "ASSIGN expression end";
     public static final String BINARY_EXPR = "BINARY expression";
     public static final String UNARY_EXPR = "UNARY expression";
 
