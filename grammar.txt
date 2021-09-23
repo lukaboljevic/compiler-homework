@@ -5,7 +5,8 @@ Type			-> integer |  bool | string | double
 		
 CommandSequence	-> {Stmt+ }
 Stmt			-> IfStmt  | WhileStmt |  ForStmt |
-				   BreakStmt  | PrintStmt | RepeatStmt | AssignExpr ;
+				   BreakStmt  | PrintStmt | RepeatStmt |
+				   CalcStmt | AssignExpr ;
 	
 IfStmt			-> IF ( Expr ) CommandSequence EndIf 
 EndIf			-> ELSE CommandSequence FI | FI 
@@ -14,6 +15,7 @@ ForStmt			-> FOR ( AssignExpr ; Expr ; AssignExpr ) CommandSequence
 BreakStmt		-> BREAK ;
 PrintStmt		-> PRINT (Expr) ;
 RepeatStmt      -> REPEAT CommandSequence UNTIL ( Expr ) ;
+CalcStmt        -> CALC_BEGIN (Expr ;) + CALC_END
 
 AssignExpr	-> ident = Expr
 AssignExprEnd   -> ? Expr : Expr | eps

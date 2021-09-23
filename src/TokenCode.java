@@ -18,6 +18,8 @@ public enum TokenCode {
     READDOUBLE,
     REPEAT,
     UNTIL,
+    CALC_BEGIN,
+    CALC_END,
 
     // Identifier and data types
     IDENTIFIER,

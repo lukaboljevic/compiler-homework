@@ -7,5 +7,4 @@ public class CommandSequence {
     public CommandSequence(ArrayList<Statement> statements) {
         this.statements = statements;
     }
-
 }

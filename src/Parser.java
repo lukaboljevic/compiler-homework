@@ -21,16 +21,23 @@ public class Parser {
         this.firstMap.put("Declarations", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_TYPE,
                 TokenCode.BOOL_TYPE, TokenCode.STRING_TYPE, TokenCode.DOUBLE_TYPE)));
         this.firstMap.put("CommandSequence", new ArrayList<>(Arrays.asList(TokenCode.IF, TokenCode.WHILE,
-                TokenCode.FOR, TokenCode.BREAK, TokenCode.PRINT, TokenCode.REPEAT, TokenCode.IDENTIFIER,
-                TokenCode.INTEGER_CONSTANT, TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT,
-                TokenCode.DOUBLE_CONSTANT, TokenCode.LEFT_REGULAR, TokenCode.READINT, TokenCode.READSTRING,
-                TokenCode.READDOUBLE, TokenCode.READBOOL)));
+                TokenCode.FOR, TokenCode.BREAK, TokenCode.PRINT, TokenCode.REPEAT,
+                TokenCode.CALC_BEGIN, TokenCode.IDENTIFIER, TokenCode.INTEGER_CONSTANT,
+                TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT, TokenCode.DOUBLE_CONSTANT,
+                TokenCode.LEFT_REGULAR, TokenCode.READINT, TokenCode.READSTRING, TokenCode.READDOUBLE,
+                TokenCode.READBOOL)));
         this.firstMap.put("Compare", new ArrayList<>(Arrays.asList(TokenCode.LESS, TokenCode.LESS_EQUAL,
                 TokenCode.GREATER, TokenCode.GREATER_EQUAL)));
         this.firstMap.put("Constant", new ArrayList<>(Arrays.asList(TokenCode.INTEGER_CONSTANT,
                 TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT, TokenCode.DOUBLE_CONSTANT)));
         this.firstMap.put("ReadOperations", new ArrayList<>(Arrays.asList(TokenCode.READINT,
                 TokenCode.READSTRING, TokenCode.READBOOL, TokenCode.READDOUBLE)));
+        // had to put it just for the purposes of CalcStatement
+        this.firstMap.put("Expression",
+                new ArrayList<>(Arrays.asList(TokenCode.IDENTIFIER, TokenCode.INTEGER_CONSTANT,
+                TokenCode.BOOL_CONSTANT, TokenCode.STRING_CONSTANT, TokenCode.DOUBLE_CONSTANT,
+                TokenCode.LEFT_REGULAR, TokenCode.READINT, TokenCode.READSTRING, TokenCode.READDOUBLE,
+                TokenCode.READBOOL)));
 
         // start parsing
         this.errors = 0;
@@ -102,6 +109,7 @@ public class Parser {
             case StatementKind.BREAK_STATEMENT -> System.out.println(generateTabs(numTabs) + statement.kind);
             case StatementKind.PRINT_STATEMENT -> printPrintStatement((StatementPrint) statement, numTabs);
             case StatementKind.REPEAT_STATEMENT -> printRepeatStatement((StatementRepeat) statement, numTabs);
+            case StatementKind.CALC_STATEMENT -> printCalcStatement((StatementCalc) statement, numTabs);
             case StatementKind.ASSIGN_EXPR -> printAssignExpr((ExpressionAssign) statement, numTabs);
             case StatementKind.BINARY_EXPR, StatementKind.UNARY_EXPR -> printExpr((Expression) statement,
                     numTabs);
@@ -163,6 +171,14 @@ public class Parser {
         this.printCommandSequence(repeatStatement.commandSequence, numTabs + 2);
         System.out.println(tabs + "\t" + "UNTIL:");
         this.printExpr(repeatStatement.expression, numTabs + 2);
+    }
+
+    private void printCalcStatement(StatementCalc calcStatement, int numTabs) {
+        String tabs = generateTabs(numTabs);
+        System.out.println(tabs + calcStatement.kind);
+        for (Expression expression: calcStatement.expressions) {
+            this.printExpr(expression, numTabs + 1);
+        }
     }
 
     private void printAssignExpr(ExpressionAssign assign, int numTabs) {
@@ -347,6 +363,9 @@ public class Parser {
         else if (this.sym == TokenCode.REPEAT) {
             return this.RepeatStmt();
         }
+        else if (this.sym == TokenCode.CALC_BEGIN) {
+            return this.CalcStmt();
+        }
         else if (this.sym == TokenCode.IDENTIFIER) {
             ExpressionAssign assign = this.AssignExpr();
             this.check(TokenCode.SEMICOLON);
@@ -440,6 +459,18 @@ public class Parser {
         this.check(TokenCode.RIGHT_REGULAR);
         this.check(TokenCode.SEMICOLON);
         return new StatementRepeat(cs, expr);
+    }
+
+    private StatementCalc CalcStmt() {
+        // CalcStmt -> CALC_BEGIN (Expr;) + CALC_END
+        this.check(TokenCode.CALC_BEGIN);
+        ArrayList<Expression> expressions = new ArrayList<>();
+        while (this.firstMap.get("Expression").contains(this.sym)){
+            expressions.add(this.Expr());
+            this.check(TokenCode.SEMICOLON);
+        }
+        this.check(TokenCode.CALC_END);
+        return new StatementCalc(expressions);
     }
 
     private ExpressionAssign AssignExpr() {
